@@ -35,7 +35,7 @@ describe("GET /events", () => {
         )
     })
 
-    
+
     describe("GET /events/:id", () => {
         it("should return a specific event", async() => {
             const event = await createEvent()
@@ -113,7 +113,7 @@ describe("DELETE /events/:id", () => {
     })
 })
 
-//error tests events commit"test: add error scenarios for events endpoints"
+//error tests events 
 describe("Error cases for /events", () => {
     beforeEach(async () => await cleanDb());
   
