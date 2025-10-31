@@ -1,11 +1,11 @@
 import prisma from "database"
 import { faker } from '@faker-js/faker';
 
-export async function createEvent() {
+export async function createEvent(name?: string, date?:string) {
     return await prisma.event.create({
         data:{
-            name: faker.person.fullName(),
-            date: faker.date.anytime()  
+            name: name || faker.person.fullName(),
+            date: date || faker.date.anytime()  
         }
     })
 }

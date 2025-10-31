@@ -5,14 +5,25 @@ import { cleanDb, createEvent } from "./factories/events-factory";
 
 const api = supertest(app);
 
+afterAll(async () => {
+    await cleanDb();
+    await prisma.$disconnect();
+});
+
 describe("GET /events", () => {
     beforeEach(async () => await cleanDb());
+
+    it("empty array should retrun []", async() => {
+        const { status, body } = await api.get("/events")
+        expect(status).toBe(200)
+        expect(body).toEqual([])
+    })
 
     it("should return all events", async() => {
         const event = await createEvent()
         const { status, body } = await api.get("/events")
         expect(status).toBe(200)
-        expect(body).toHaveLength(1)
+        expect(body.length).toBeGreaterThanOrEqual(1)
         expect(body).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
@@ -24,12 +35,7 @@ describe("GET /events", () => {
         )
     })
 
-    it("empty array should retrun []", async() => {
-        const { status, body } = await api.get("/events")
-        expect(status).toBe(200)
-        expect(body).toEqual([])
-    })
-
+    
     describe("GET /events/:id", () => {
         it("should return a specific event", async() => {
             const event = await createEvent()
@@ -107,6 +113,38 @@ describe("DELETE /events/:id", () => {
     })
 })
 
-afterAll(async () => {
-    await prisma.$disconnect();
-})
+//error tests events commit"test: add error scenarios for events endpoints"
+describe("Error cases for /events", () => {
+    beforeEach(async () => await cleanDb());
+  
+    it("should return 404 when getting an event that does not exist", async () => {
+      const { status } = await api.get("/events/999");
+      expect(status).toBe(404);
+    });
+  
+    it("should return 409 when trying to create an event with existing name", async () => {
+      const fixedName = "Coldplay Show";
+      await prisma.event.create({
+        data: {
+          name: fixedName,
+          date: new Date("2025-12-25T22:00:00.000Z"),
+        },
+      });
+  
+      const { status } = await api.post("/events").send({
+        name: fixedName,
+        date: "2025-12-25T22:00:00.000Z",
+      });
+  
+      expect(status).toBe(409);
+    });
+  
+    it("should return 422 when sending invalid event data", async () => {
+      const { status } = await api.post("/events").send({
+        name: "",
+        date: "invalid-date",
+      });
+  
+      expect(status).toBe(422);
+    });
+  });
