@@ -144,3 +144,24 @@ describe("PUT /events/:id", () => {
       expect(res.status).toBe(422); 
     })
 })
+
+describe("DELETE /events/:id", () => {
+    it("should delete an existing event and return 204", async () => {
+      const event = await createEvent({ name: "Event to Delete" })
+  
+      const res = await api.delete(`/events/${event.id}`);
+  
+      expect(res.status).toBe(204)
+  
+      const deleted = await prisma.event.findUnique({ where: { id: event.id } })
+      expect(deleted).toBeNull();
+    })
+  
+    it("should return 404 if event does not exist", async () => {
+      const res = await api.delete("/events/9999");
+  
+      expect(res.status).toBe(404);
+      expect(res.text).toContain("not found"); 
+    });
+})
+  
