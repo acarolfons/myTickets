@@ -98,3 +98,49 @@ describe("POST /events", () => {
         expect(res.status).toBe(422);
     });
 });
+
+describe("PUT /events/:id", () => {
+    it("should update an event and return 200", async () => {
+      const event = await createEvent({ name: "Old Event" });
+      const body = { name: "Updated Event", date: "2026-12-31T00:00:00.000Z" };
+  
+      const res = await api.put(`/events/${event.id}`).send(body);
+  
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({
+        id: event.id,
+        name: body.name,
+        date: body.date
+      })
+    })
+  
+    it("should return 409 if updating to a name that already exists", async () => {
+      const event1 = await createEvent({ name: "Event 1" });
+      const event2 = await createEvent({ name: "Event 2" });
+  
+      const body = { name: "Event 1", date: "2026-12-31T00:00:00.000Z" };
+  
+      const res = await api.put(`/events/${event2.id}`).send(body);
+  
+      expect(res.status).toBe(409);
+      expect(res.text).toContain("already registered"); 
+    })
+  
+    it("should return 404 if event does not exist", async () => {
+      const body = { name: "Nonexistent Event", date: "2026-12-31T00:00:00.000Z" };
+  
+      const res = await api.put("/events/9999").send(body);
+  
+      expect(res.status).toBe(404);
+      expect(res.text).toContain("not found"); 
+    })
+  
+    it("should return 422 when body is invalid", async () => {
+      const event = await createEvent();
+      const body = { name: "", date: "invalid-date" };
+  
+      const res = await api.put(`/events/${event.id}`).send(body);
+  
+      expect(res.status).toBe(422); 
+    })
+})
