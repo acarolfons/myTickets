@@ -10,7 +10,7 @@
     "migration:run": "prisma migrate deploy",
     "test": "dotenv -e .env.test -- jest --runInBand",
     "test:load-envs": "dotenv -e .env.test",
-    "test:coverage": "npm run test:load-envs -- jest -- --coverage"
+    "test:coverage": "dotenv -e .env.test -- jest --runInBand --coverage"
   },
   "keywords": [],
   "author": "",
