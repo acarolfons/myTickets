@@ -70,3 +70,33 @@ describe("POST /tickets", () => {
     expect(res.text).toContain("already happened")
   })
 })
+
+describe("PUT /tickets/use/:id", () => {
+  it("should mark a ticket as used and return 204", async () => {
+    const ticket = await createTicket()
+
+    const res = await api.put(`/tickets/use/${ticket.id}`)
+
+    expect(res.status).toBe(204)
+
+    const updated = await prisma.ticket.findUnique({ where: { id: ticket.id } });
+    expect(updated.used).toBe(true);
+  });
+
+  it("should return 404 if ticket does not exist", async () => {
+    const res = await api.put("/tickets/use/9999")
+
+    expect(res.status).toBe(404)
+    expect(res.text).toContain("not found")
+  });
+
+  it("should return 403 if ticket already used or event expired", async () => {
+    const ticket = await createTicket({ code: "EXPIRED" })
+    await prisma.ticket.update({ where: { id: ticket.id }, data: { used: true } });
+
+    const res = await api.put(`/tickets/use/${ticket.id}`)
+
+    expect(res.status).toBe(403)
+    expect(res.text).toContain("already happened or ticket was already used")
+  })
+})
