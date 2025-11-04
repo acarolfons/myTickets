@@ -68,3 +68,33 @@ describe("GET /events/:id", () => {
       });
 })
 
+describe("POST /events", () => {
+    it("should create an event and return 201", async () => {
+        const body = { name: "Rock in Rio", date: "2026-09-15T00:00:00.000Z" };
+        const res = await api.post("/events").send(body);
+  
+        expect(res.status).toBe(201);
+        expect(res.body).toMatchObject({
+            id: expect.any(Number),
+            name: body.name,
+            date: body.date
+        });
+    });
+  
+    it("should return 409 if event name already exists", async () => {
+        await createEvent({ name: "Campus Party" });
+        const body = { name: "Campus Party", date: "2026-09-15T00:00:00.000Z" };
+  
+        const res = await api.post("/events").send(body);
+  
+        expect(res.status).toBe(409);
+        expect(res.text).toContain("already registered"); 
+    });
+  
+    it("should return 422 when body is invalid", async () => {
+        const body = { name: "", date: "not-a-date" };
+        const res = await api.post("/events").send(body);
+  
+        expect(res.status).toBe(422);
+    });
+});
