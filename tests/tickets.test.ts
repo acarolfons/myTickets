@@ -38,3 +38,35 @@ describe("GET /tickets/:eventId", () => {
     });
   })
 })
+
+describe("POST /tickets", () => {
+  it("should create a ticket and return 201", async () => {
+    const event = await createEvent()
+    const body = { code: "ABC123", owner: "John Doe", eventId: event.id }
+
+    const res = await api.post("/tickets").send(body)
+
+    expect(res.status).toBe(201)
+    expect(res.body).toMatchObject(body)
+  });
+
+  it("should return 409 if ticket code already exists for event", async () => {
+    const ticket = await createTicket({ code: "DUPLICATE" })
+
+    const body = { code: "DUPLICATE", owner: "Jane Doe", eventId: ticket.eventId }
+    const res = await api.post("/tickets").send(body)
+
+    expect(res.status).toBe(409)
+    expect(res.text).toContain("already registered")
+  })
+
+  it("should return 403 if event has already happened", async () => {
+    const event = await createEvent({ date: new Date(Date.now() - 1000) })
+    const body = { code: "OLD", owner: "John Doe", eventId: event.id }
+
+    const res = await api.post("/tickets").send(body);
+
+    expect(res.status).toBe(403);
+    expect(res.text).toContain("already happened")
+  })
+})
